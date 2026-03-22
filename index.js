@@ -157,10 +157,28 @@ client.on('guildMemberRemove', (member) => {
   updateChannel(member.guild);
 });
 
-// ===== READY =====
-client.on('ready', () => {
+// ===== READY (FIX COUNT 0) =====
+client.on('ready', async () => {
   console.log(`🚀 Login sebagai ${client.user.tag}`);
+
+  for (const guild of client.guilds.cache.values()) {
+    try {
+      await guild.members.fetch(); // 🔥 ambil semua member
+      console.log(`✅ Loaded members: ${guild.name}`);
+
+      await updateChannel(guild); // langsung update
+    } catch (err) {
+      console.error(`❌ Gagal fetch di ${guild.name}`, err.message);
+    }
+  }
 });
+
+// ===== OPTIONAL AUTO REFRESH =====
+setInterval(() => {
+  client.guilds.cache.forEach(guild => {
+    updateChannel(guild);
+  });
+}, 30000); // tiap 30 detik
 
 // ===== LOGIN =====
 client.login(process.env.TOKEN);
