@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, GatewayIntentBits, PermissionsBitField } = require('discord.js');
 const fs = require('fs');
 
 const client = new Client({
@@ -40,7 +40,6 @@ async function updateChannel(guild) {
     if (!role || !channel) continue;
 
     const count = role.members.size;
-
     const newName = `${item.baseName}-${count}`;
 
     if (channel.name !== newName) {
@@ -61,8 +60,13 @@ client.on('messageCreate', async (message) => {
   const args = message.content.split(' ');
   const cmd = args[0].toLowerCase();
 
-  // ===== SET GAME =====
+  // ===== SET GAME (ADMIN ONLY) =====
   if (cmd === '!setgame') {
+
+    if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+      return message.reply('❌ Hanya admin yang bisa pakai command ini');
+    }
+
     const role = message.mentions.roles.first();
     const channel = message.mentions.channels.first();
 
@@ -98,8 +102,13 @@ client.on('messageCreate', async (message) => {
     updateChannel(message.guild);
   }
 
-  // ===== REMOVE GAME =====
+  // ===== REMOVE GAME (ADMIN ONLY) =====
   if (cmd === '!removegame') {
+
+    if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+      return message.reply('❌ Hanya admin yang bisa pakai command ini');
+    }
+
     const channel = message.mentions.channels.first();
 
     if (!channel) {
@@ -117,7 +126,7 @@ client.on('messageCreate', async (message) => {
     message.reply('🗑️ Data berhasil dihapus');
   }
 
-  // ===== LIST GAME =====
+  // ===== LIST GAME (SEMUA ORANG) =====
   if (cmd === '!listgame') {
     const guildData = data[message.guild.id];
 
