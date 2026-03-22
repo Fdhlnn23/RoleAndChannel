@@ -2,7 +2,18 @@ require('dotenv').config();
 
 const { Client, GatewayIntentBits, PermissionsBitField } = require('discord.js');
 const fs = require('fs');
+const http = require('http');
 
+// ===== WEB SERVER (ANTI SLEEP RAILWAY) =====
+const PORT = process.env.PORT || 3000;
+http.createServer((req, res) => {
+  res.write('Bot is alive');
+  res.end();
+}).listen(PORT, () => {
+  console.log(`🌐 Web server jalan di port ${PORT}`);
+});
+
+// ===== DISCORD CLIENT =====
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -45,9 +56,9 @@ async function updateChannel(guild) {
     if (channel.name !== newName) {
       try {
         await channel.setName(newName);
-        console.log(`Updated: ${newName}`);
+        console.log(`✅ Updated: ${newName}`);
       } catch (err) {
-        console.error('Gagal rename:', err.message);
+        console.error('❌ Gagal rename:', err.message);
       }
     }
   }
@@ -163,22 +174,26 @@ client.on('ready', async () => {
 
   for (const guild of client.guilds.cache.values()) {
     try {
-      await guild.members.fetch(); // 🔥 ambil semua member
+      await guild.members.fetch(); // 🔥 penting
       console.log(`✅ Loaded members: ${guild.name}`);
 
-      await updateChannel(guild); // langsung update
+      await updateChannel(guild);
     } catch (err) {
       console.error(`❌ Gagal fetch di ${guild.name}`, err.message);
     }
   }
 });
 
-// ===== OPTIONAL AUTO REFRESH =====
+// ===== AUTO REFRESH =====
 setInterval(() => {
   client.guilds.cache.forEach(guild => {
     updateChannel(guild);
   });
-}, 30000); // tiap 30 detik
+}, 30000);
+
+// ===== ERROR HANDLER =====
+process.on('uncaughtException', console.error);
+process.on('unhandledRejection', console.error);
 
 // ===== LOGIN =====
 client.login(process.env.TOKEN);
